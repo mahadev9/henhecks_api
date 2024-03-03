@@ -5,6 +5,7 @@ from flask_cors import CORS
 from io import BytesIO
 import base64
 from bson import Binary
+
 import requests
 import json
 from bs4 import BeautifulSoup
@@ -16,19 +17,19 @@ import fitz
 app = Flask(__name__)
 CORS(app)
 
-import nltk
-import ssl
+# import nltk
+# import ssl
 
-try:
-    _create_unverified_https_context = ssl._create_unverified_context
-except AttributeError:
-    pass
-else:
-    ssl._create_default_https_context = _create_unverified_https_context
+# try:
+#     _create_unverified_https_context = ssl._create_unverified_context
+# except AttributeError:
+#     pass
+# else:
+#     ssl._create_default_https_context = _create_unverified_https_context
 
-nltk.download('punkt')
+# nltk.download('punkt')
 
-mongo_uri = ''
+mongo_uri = 'mongodb+srv://sm4825:VDSIdNRsYU9v9EVr@cluster0.gvo92qb.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'
 
 db_name = 'test-db'
 collection_name= 'test-connection'
@@ -235,45 +236,45 @@ def login():
     else:
         return jsonify({"error": "Invalid email or password"}), 401
 
-@app.route('/getjobs', methods=['POST'])
-def get_jobs():
-  links = []
-  BODY["searchText"] = "Software Engineer"
-  for company in WORKDAY_JOBS:
-    response = requests.post(WORKDAY_JOBS[company][0], data=json.dumps(BODY), headers=HEADERS)
-    data = response.json()
-    for job in data["jobPostings"]:
-      job_data = {}
-      job_data["title"] = job["title"]
-      job_data["location"] = job["locationsText"]
-      job_data["url"] = WORKDAY_JOBS[company][1] + "/" + job["externalPath"].split("/")[-1]
-      job_data["company"] = company
-      job_data["postedOn"] = job["postedOn"]
-      resp = requests.get(job_data["url"])
-      resp_data = resp.json()
-      job_data["description"] = remove_html_tags(resp_data["jobPostingInfo"]["jobDescription"])
-      job_data["job_link"] = resp_data["jobPostingInfo"]["externalUrl"]
-      links.append(job_data)
+# @app.route('/getjobs', methods=['POST'])
+# def get_jobs():
+#   links = []
+#   BODY["searchText"] = "Software Engineer"
+#   for company in WORKDAY_JOBS:
+#     response = requests.post(WORKDAY_JOBS[company][0], data=json.dumps(BODY), headers=HEADERS)
+#     data = response.json()
+#     for job in data["jobPostings"]:
+#       job_data = {}
+#       job_data["title"] = job["title"]
+#       job_data["location"] = job["locationsText"]
+#       job_data["url"] = WORKDAY_JOBS[company][1] + "/" + job["externalPath"].split("/")[-1]
+#       job_data["company"] = company
+#       job_data["postedOn"] = job["postedOn"]
+#       resp = requests.get(job_data["url"])
+#       resp_data = resp.json()
+#       job_data["description"] = remove_html_tags(resp_data["jobPostingInfo"]["jobDescription"])
+#       job_data["job_link"] = resp_data["jobPostingInfo"]["externalUrl"]
+#       links.append(job_data)
   
-  resume_text = fitz.open("resume.pdf")
-  pdf_text = ""
-  for page_num in range(len(resume_text)):
-      page = resume_text.load_page(page_num)
-      pdf_text += page.get_text()
-  resume_text.close()
+#   resume_text = fitz.open("resume.pdf")
+#   pdf_text = ""
+#   for page_num in range(len(resume_text)):
+#       page = resume_text.load_page(page_num)
+#       pdf_text += page.get_text()
+#   resume_text.close()
 
-  scores = []
-  for link in links:
-    match_score = calculate_match_score(pdf_text, link["description"])
-    match_percentage = match_score * 100
-    link["match_score"] = match_percentage
-    scores.append(match_percentage)
+#   scores = []
+#   for link in links:
+#     match_score = calculate_match_score(pdf_text, link["description"])
+#     match_percentage = match_score * 100
+#     link["match_score"] = match_percentage
+#     scores.append(match_percentage)
 
-  updated_links = scale_scores(links, scores, 30, 85)
+#   updated_links = scale_scores(links, scores, 30, 85)
 
-  updated_links = [i for i in updated_links if i["match_score"] > 50]
-  updated_links.sort(key=lambda x: x["match_score"], reverse=True)
-  return updated_links
+#   updated_links = [i for i in updated_links if i["match_score"] > 50]
+#   updated_links.sort(key=lambda x: x["match_score"], reverse=True)
+#   return updated_links
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5001)

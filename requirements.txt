@@ -1,9 +1,9 @@
 flask
 pymongo
-bson
 flask_cors
 requests
 bs4
 fitz
 nltk
 scikit-learn
+PyMuPDF
